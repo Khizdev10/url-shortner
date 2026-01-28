@@ -42,6 +42,7 @@ export default function Mainpage(props: any) {
                 <label className="mb-2 font-semibold text-lg">Long URL</label>
               <input
                 type="url"
+                id="longUrl"
                 placeholder="Paste a long URL"
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -53,6 +54,7 @@ export default function Mainpage(props: any) {
                 </select>
                 <input
                   type="text"
+                  id="alias"
                   placeholder="alias"
                   className="w-1/2 rounded-lg border border-gray-300 px-3 py-2"
                 />

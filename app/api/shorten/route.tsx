@@ -1,8 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../../../lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-    
+    try{
   const { longUrl, alias } = await req.json();
   let abbreviation;
   if(alias){
@@ -55,4 +55,9 @@ let shortenedUrl = "http://localhost:3000/" + abbreviation;
   });
 
   return NextResponse.json(shorturl);
+}
+catch(error){
+    console.log(error);
+    return NextResponse.json({error: "Something went wrong"});
+}
 }

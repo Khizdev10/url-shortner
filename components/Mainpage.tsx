@@ -38,7 +38,7 @@ export default function Mainpage(props: any) {
           {/* RIGHT FORM */}
           <div className="bg-white text-black rounded-xl shadow-xl p-6 w-full max-w-md">
             <form className="space-y-5">
-                
+                <p className="text-red-500 text-center hidden" id="aliasexistmsg">* Alias already in use. try something else</p>
                 <label className="mb-2 font-semibold text-lg">Long URL</label>
               <input
                 type="url"
@@ -60,7 +60,9 @@ export default function Mainpage(props: any) {
                 />
               </div>
 
-              <button  onClick={props.handleShorten} className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
+              <button  onClick={(e)=>{
+                e.preventDefault();
+                props.handleShorten()}} className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
                 Shorten
               </button>
 

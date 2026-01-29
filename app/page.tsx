@@ -16,7 +16,7 @@ export default function Home() {
  const aliasValue = alias.value;
  console.log(aliasValue);
 
- const response = await fetch("http://localhost:3000/api/shorten", {
+ const response = await fetch("/api/shorten", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -25,7 +25,14 @@ export default function Home() {
 });
 
 const data = await response.json();
-console.log(data);
+if(data.error){
+  let aliasexistmsg = document.getElementById("aliasexistmsg") as HTMLInputElement;
+  aliasexistmsg.classList.remove("hidden");
+  // alert(data.error);
+}
+else{
+  console.log("data is fuck me daddy",data);
+}
   }
  
   return (

@@ -31,7 +31,14 @@ if(data.error){
   // alert(data.error);
 }
 else{
-  console.log("data is fuck me daddy",data);
+  let aliasexistmsg = document.getElementById("aliasexistmsg") as HTMLInputElement;
+  aliasexistmsg.classList.add("hidden");
+  let shortenedUrlBox = document.getElementById("shortenedUrlBox") as HTMLInputElement;
+  shortenedUrlBox.classList.remove("hidden");
+  let shorturltext = document.getElementById("shorturltext") as HTMLAnchorElement;
+  shorturltext.innerText = `${data.shortUrl}`;
+  shorturltext.href = `${data.shortUrl}`;
+  console.log("data:",data);
 }
   }
  

@@ -1,7 +1,11 @@
+
+import { Copy } from "lucide-react";
+
+
 export default function Mainpage(props: any) {
   return (
     <div className="relative min-h-screen overflow-hidden">
-
+{/* <div className="absolute bg-green-200 h-[400px] w-[600px] top-30 left-60 z-50"></div> */}
 <div className="absolute inset-0 bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#312e81]" />
 
       {/* Wave Shape */}
@@ -65,6 +69,14 @@ export default function Mainpage(props: any) {
                 props.handleShorten()}} className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
                 Shorten
               </button>
+
+              <div className="shortenedUrl bg-gray-50 rounded-lg p-6 hidden" id="shortenedUrlBox">
+                <p className="font-semibold opacity-60">Shortened URL</p>
+               <div className="flex justify-between items-center">
+               <a href="" id="shorturltext"className="text-blue-600" target="_blank"></a>
+                <button className="bg-gray-200 hover:bg-gray-300 text-black py-2 px-4 rounded-lg font-semibold transition"><Copy size={18} /></button>
+                </div>
+              </div>
 
             </form>
           </div>

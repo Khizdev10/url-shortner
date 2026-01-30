@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   if(alias){
     abbreviation = await checkIfAliasExist(alias);
   
-    if(abbreviation === true){
+    if(abbreviation == true){
       return NextResponse.json({error: "Alias already exists"});
     }
     else{

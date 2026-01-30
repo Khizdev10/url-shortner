@@ -52,10 +52,9 @@ export default function Mainpage(props: any) {
               />
 
               <div className="flex gap-3">
-                <select className="w-1/2 rounded-lg border border-gray-300 px-3 py-2">
-                  <option>tinyurl.com</option>
-                  <option>short.ly</option>
-                </select>
+                <div className="w-1/2 rounded-lg border border-gray-300 px-3 py-2">
+                  <a>shortify.vercel.app/</a>
+                </div>
                 <input
                   type="text"
                   id="alias"

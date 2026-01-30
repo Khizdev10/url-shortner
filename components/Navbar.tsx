@@ -104,7 +104,7 @@ const Navbar = () => {
                     <Link href="/">
                         {/* Pass the condition: if scrolled or mobile menu open, it should be dark (black) */}
                         {/* <Logo isDark={isScrolled || isMobileMenuOpen} /> */}
-                        <h1 className="font-semibold text-xl">URL Shortner</h1>
+                        <h1 className="font-semibold text-xl">Shortify</h1>
                     </Link>
                 </div>
 
@@ -115,6 +115,11 @@ const Navbar = () => {
                             <NavigationMenuItem>
                                 <NavigationMenuLink asChild>
                                     <Link href="/" className={navItemClasses}>Home</Link>
+                                </NavigationMenuLink>
+                            </NavigationMenuItem>
+                            <NavigationMenuItem>
+                                <NavigationMenuLink asChild>
+                                    <Link href="/dashboard" className={navItemClasses}>Dashboard</Link>
                                 </NavigationMenuLink>
                             </NavigationMenuItem>
                             <NavigationMenuItem>
@@ -168,6 +173,10 @@ const Navbar = () => {
                     <nav className="flex flex-col space-y-4">
                         <Link href="/" className="text-lg font-medium text-slate-900 hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
                             Home
+                        </Link>
+
+                        <Link href="/dashboard" className="text-lg font-medium text-slate-900 hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
+                            Dashboard
                         </Link>
 
                         {/* Services Section */}

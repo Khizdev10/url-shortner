@@ -1,8 +1,10 @@
 export const runtime = "nodejs";
 
+
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
+console.log("ddf")
 export async function GET(
   req: Request,
   ctx: { params: Promise<{ alias: string }> }

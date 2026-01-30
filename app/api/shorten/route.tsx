@@ -16,6 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({error: "Alias already exists"});
     }
     else{
+      console.log("hello world")
       abbreviation = alias;
     }
   }

@@ -5,10 +5,16 @@ export async function POST(req: Request) {
     try{
   const { longUrl, alias } = await req.json();
   let abbreviation;
+  console.log("Value of alias Q@@@@@@@ ",alias)
+  
   if(alias){
     abbreviation = await checkIfAliasExist(alias);
-    if(abbreviation === 'exist'){
+  
+    if(abbreviation === true){
       return NextResponse.json({error: "Alias already exists"});
+    }
+    else{
+      abbreviation = alias;
     }
   }
   else{
@@ -39,9 +45,9 @@ const aliasExist = await prisma.shortener.findUnique({
 
 if(aliasExist){
     console.log("AAAAAAAAAAAAAAAAAAAG maaa ka bhosda aaaaaaaaaaaag")
-  return 'exist'
+  return true
 }
-return alias;
+return false;
 }
 
 let shortenedUrl = "http://localhost:3000/" + abbreviation;

@@ -52,7 +52,7 @@ export default function Mainpage(props: any) {
               />
 
               <div className="flex gap-3">
-                <div className="w-1/2 rounded-lg border border-gray-300 px-3 py-2">
+                <div className="w-1/2 rounded-lg border border-gray-300 px-3 py-2 opacity-60">
                   <a>shortify.vercel.app/</a>
                 </div>
                 <input

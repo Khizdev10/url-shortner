@@ -26,6 +26,15 @@ interface ListItemProps {
 
 const ListItem = React.forwardRef<HTMLAnchorElement, ListItemProps>(({ className, title, children, href, ...props }, ref) => {
 
+
+    const checkLoggedIn = async() => {
+      let res =   fetch("/api/auth/check", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+    }
     // useEffect(() => { AOS.init({ duration: 1000 }); }, []);
     return (
         <li >
@@ -175,7 +184,7 @@ const Navbar = () => {
                             Home
                         </Link>
 
-                        <Link href="/dashboard" className="text-lg font-medium text-slate-900 hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Link href="/dashboard"  className="text-lg font-medium text-slate-900 hover:text-blue-600">
                             Dashboard
                         </Link>
 

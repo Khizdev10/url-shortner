@@ -30,7 +30,7 @@ export default function Home() {
   const handleShorten = async()=>{
  const longUrl = document.getElementById("longUrl") as HTMLInputElement;
  let shortenBtn  = document.getElementById("shortenBtn") as HTMLButtonElement;
- shortenBtn.innerText = "Loading ...";
+ shortenBtn.innerText = "Generating...";
  shortenBtn.disabled = true;
  const longUrlValue = longUrl.value;
  const alias = document.getElementById("alias") as HTMLInputElement;

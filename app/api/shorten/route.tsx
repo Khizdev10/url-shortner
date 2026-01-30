@@ -53,7 +53,7 @@ if(aliasExist){
 return false;
 }
 
-let shortenedUrl = "http://localhost:3000/" + abbreviation;
+let shortenedUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/${abbreviation}`;
 
   const shorturl = await prisma.shortener.create({
     data: {

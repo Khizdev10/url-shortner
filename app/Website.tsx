@@ -1,12 +1,16 @@
 'use client'
+import Navbar from '../components/Navbar'
+import Mainpage from '../components/Mainpage'
+import Info from '../components/Info'
+import { HowItWorks } from '../components/Working'
+import { useState } from 'react';
 import { redirect } from 'next/navigation';
 import Login from './login/page';
 import { useUser } from "@/context/UserContext";
 import { SessionProvider } from "next-auth/react";
 import { UserProvider } from "@/context/UserContext";
-import Website from './Website';
 
-export default function Home(session: any) {
+export default function Website(session: any) {
   // const [user,setUser] = useState();
 //  const { user } = useUser(); 
   const copy = () => {
@@ -65,14 +69,27 @@ else{
 }
   }
  
- 
+  const checkLoggedIn = async () => {
+    if(useUser ){
+     alert("User logged In") 
+     redirect("/dashboard");
+    }
+    else{
+      // alert("User not logged In") 
+      redirect("/login")
+    }
+  }
+
   
   return (
     <div className=" min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-       <SessionProvider session={session}>
+    <SessionProvider session={session}>
     <UserProvider>
-   
-    <Website user={useUser}/>
+      <Navbar checkLoggedIn={checkLoggedIn} />
+      <Mainpage handleShorten={handleShorten} copy={copy} user={useUser}/>
+      {/* <Login /> */}
+      <Info />
+      <HowItWorks />
     </UserProvider>
     </SessionProvider>
     </div>

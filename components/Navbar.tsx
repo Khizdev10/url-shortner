@@ -47,13 +47,8 @@ const ListItem = React.forwardRef<HTMLAnchorElement, ListItemProps>(
 )
 ListItem.displayName = "ListItem"
 
-// --- 2. NAVBAR PROPS ---
-interface NavbarProps {
-  checkLoggedIn: () => void;
-}
-
-// --- 3. MAIN NAVBAR ---
-const Navbar = ({ checkLoggedIn }: NavbarProps) => {
+// --- 2. MAIN NAVBAR ---
+const Navbar = () => {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
 
@@ -103,14 +98,7 @@ const Navbar = ({ checkLoggedIn }: NavbarProps) => {
 
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link
-                    href="/dashboard"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      checkLoggedIn();
-                    }}
-                    className={navItemClasses}
-                  >
+                  <Link href="/dashboard" className={navItemClasses}>
                     Dashboard
                   </Link>
                 </NavigationMenuLink>
@@ -169,11 +157,7 @@ const Navbar = ({ checkLoggedIn }: NavbarProps) => {
 
             <Link
               href="/dashboard"
-              onClick={(e) => {
-                e.preventDefault();
-                checkLoggedIn();
-                setIsMobileMenuOpen(false);
-              }}
+              onClick={() => setIsMobileMenuOpen(false)}
               className="text-lg font-medium text-slate-900 hover:text-blue-600"
             >
               Dashboard

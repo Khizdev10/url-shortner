@@ -3,16 +3,23 @@ import Navbar from '../components/Navbar'
 import Mainpage from '../components/Mainpage'
 import Info from '../components/Info'
 import { HowItWorks } from '../components/Working'
-import { useState } from 'react';
-import { redirect } from 'next/navigation';
-import Login from './login/page';
+import { useState, useEffect } from 'react';
+// import { redirect } from 'next/navigation';
 import { useUser } from "@/context/UserContext";
-import { SessionProvider } from "next-auth/react";
-import { UserProvider } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
+
+import { useSession } from "next-auth/react";
+
 
 export default function Website(session: any) {
   // const [user,setUser] = useState();
-//  const { user } = useUser(); 
+ const { user } =  useUser(); 
+const router = useRouter();
+const { status } = useSession();
+const [mounted, setMounted] = useState(false);
+
+useEffect(() => setMounted(true), []);
+if (!mounted) return null;
   const copy = () => {
     const shorturltext = document.getElementById("shorturltext") as HTMLAnchorElement;
     const url = shorturltext.href;
@@ -70,28 +77,26 @@ else{
   }
  
   const checkLoggedIn = async () => {
-    if(useUser ){
+    if(status == 'authenticated'){
      alert("User logged In") 
-     redirect("/dashboard");
+     router.push("/dashboard");
     }
     else{
+        console.log("User not logged In:",user) 
       // alert("User not logged In") 
-      redirect("/login")
+      router.push("/login")
     }
   }
 
   
   return (
     <div className=" min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-    <SessionProvider session={session}>
-    <UserProvider>
-      <Navbar checkLoggedIn={checkLoggedIn} />
-      <Mainpage handleShorten={handleShorten} copy={copy} user={useUser}/>
+  
+      <Navbar checkLoggedIn={checkLoggedIn}/>
+      <Mainpage handleShorten={handleShorten} copy={copy} user={user}/>
       {/* <Login /> */}
       <Info />
       <HowItWorks />
-    </UserProvider>
-    </SessionProvider>
     </div>
   );
 }

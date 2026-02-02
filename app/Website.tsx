@@ -12,6 +12,10 @@ import { useSession } from "next-auth/react";
 
 
 export default function Website(session: any) {
+
+
+  // wo bhi apne naa hweee dil bhi gyaa haathon se
+  // yup this is the thing 
   // const [user,setUser] = useState();
   const { user } = useUser();
   const router = useRouter();

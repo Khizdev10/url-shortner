@@ -1,0 +1,535 @@
+# Email/Password Authentication Implementation Plan
+
+This plan outlines the steps to add email/password login functionality to your URL shortener app alongside the existing Google OAuth.
+
+## Prerequisites
+- bcryptjs (for password hashing)
+- Updated Prisma schema for users
+
+---
+
+## PHASE 1: Database Setup
+
+### Step 1.1: Install Dependencies
+```bash
+npm install bcryptjs
+npm install --save-dev @types/bcryptjs
+```
+
+### Step 1.2: Update Prisma Schema
+Add a User model to `prisma/schema.prisma`:
+
+```prisma
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?   // null for OAuth users
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+```
+
+Optional: Link users to their shortened URLs:
+```prisma
+model Shortener {
+  id       Int     @id @default(autoincrement())
+  longUrl  String
+  alias    String  @unique
+  shortUrl String  @unique
+  userId   String?
+  user     User?   @relation(fields: [userId], references: [id])
+}
+
+// Also add to User model:
+model User {
+  // ... existing fields
+  shorteners Shortener[]
+}
+```
+
+### Step 1.3: Run Database Migration
+```bash
+npx prisma migrate dev --name add_user_model
+npx prisma generate
+```
+
+---
+
+## PHASE 2: Authentication Configuration
+
+### Step 2.1: Create API Route for Signup
+Create `app/api/auth/signup/route.ts`:
+
+```typescript
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(req: Request) {
+  try {
+    const { email, password, name } = await req.json();
+    
+    // Validation
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Email and password required" },
+        { status: 400 }
+      );
+    }
+    
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    });
+    
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "User already exists" },
+        { status: 400 }
+      );
+    }
+    
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name: name || email.split('@')[0]
+      }
+    });
+    
+    return NextResponse.json(
+      { message: "User created successfully", userId: user.id },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Signup error:", error);
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Step 2.2: Update auth.ts Configuration
+Add Credentials provider to `auth.ts`:
+
+```typescript
+import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Invalid credentials");
+        }
+        
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email as string }
+        });
+        
+        if (!user || !user.password) {
+          throw new Error("Invalid credentials");
+        }
+        
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password as string,
+          user.password
+        );
+        
+        if (!isPasswordValid) {
+          throw new Error("Invalid credentials");
+        }
+        
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image
+        };
+      }
+    })
+  ],
+  
+  callbacks: {
+    async signIn({ user, account, profile }) {
+      // Handle Google OAuth - save to database if needed
+      if (account?.provider === "google") {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email! }
+        });
+        
+        if (!existingUser) {
+          await prisma.user.create({
+            data: {
+              email: user.email!,
+              name: user.name,
+              image: user.image
+            }
+          });
+        }
+      }
+      
+      return true;
+    },
+    
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub!;
+      }
+      return session;
+    }
+  },
+  
+  pages: {
+    signIn: "/login", // Custom login page
+  }
+});
+```
+
+---
+
+## PHASE 3: UI Components
+
+### Step 3.1: Create Signup Page
+Create `app/signup/page.tsx`:
+
+```typescript
+'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+
+export default function SignupPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name })
+      })
+      
+      const data = await res.json()
+      
+      if (!res.ok) {
+        setError(data.error || 'Signup failed')
+        return
+      }
+      
+      // Redirect to login after successful signup
+      router.push('/login?signup=success')
+    } catch (err) {
+      setError('Something went wrong')
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-black">
+      <div className="bg-white dark:bg-zinc-900 p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6">Sign Up</h1>
+        
+        {error && (
+          <div className="bg-red-50 text-red-500 p-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+              placeholder="John Doe"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-3 py-2 border rounded-md"
+              placeholder="you@example.com"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full px-3 py-2 border rounded-md"
+              placeholder="••••••••"
+            />
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? 'Creating account...' : 'Sign Up'}
+          </button>
+        </form>
+        
+        <p className="mt-4 text-center text-sm">
+          Already have an account?{' '}
+          <Link href="/login" className="text-blue-600 hover:underline">
+            Login
+          </Link>
+        </p>
+      </div>
+    </div>
+  )
+}
+```
+
+### Step 3.2: Update Login Page
+Modify `app/login/page.tsx` to support both email/password and Google:
+
+```typescript
+'use client'
+import { useState } from 'react'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false
+      })
+      
+      if (result?.error) {
+        setError('Invalid email or password')
+        return
+      }
+      
+      router.push('/dashboard')
+    } catch (err) {
+      setError('Something went wrong')
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const handleGoogleLogin = () => {
+    signIn('google', { callbackUrl: '/dashboard' })
+  }
+  
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-black">
+      <div className="bg-white dark:bg-zinc-900 p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6">Login</h1>
+        
+        {error && (
+          <div className="bg-red-50 text-red-500 p-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+        
+        <form onSubmit={handleEmailLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+          >
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+        
+        <div className="my-4 flex items-center">
+          <div className="flex-1 border-t"></div>
+          <span className="px-3 text-sm text-gray-500">OR</span>
+          <div className="flex-1 border-t"></div>
+        </div>
+        
+        <button
+          onClick={handleGoogleLogin}
+          className="w-full border border-gray-300 py-2 rounded-md hover:bg-gray-50"
+        >
+          Continue with Google
+        </button>
+        
+        <p className="mt-4 text-center text-sm">
+          Don't have an account?{' '}
+          <Link href="/signup" className="text-blue-600 hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </div>
+    </div>
+  )
+}
+```
+
+---
+
+## PHASE 4: Testing & Validation
+
+### Step 4.1: Test Signup Flow
+1. Navigate to `/signup`
+2. Enter email, password, and name
+3. Submit form
+4. Verify user is created in database
+5. Verify redirect to login page
+
+### Step 4.2: Test Login Flow
+1. Navigate to `/login`
+2. Enter credentials
+3. Submit form
+4. Verify redirect to `/dashboard`
+5. Verify session is active
+
+### Step 4.3: Test Google OAuth Still Works
+1. Click "Continue with Google"
+2. Complete OAuth flow
+3. Verify user is saved to database
+4. Verify redirect to dashboard
+
+### Step 4.4: Test Dashboard Protection
+1. Log out
+2. Try to access `/dashboard` directly
+3. Verify redirect to `/login`
+
+---
+
+## PHASE 5: Optional Enhancements
+
+### Step 5.1: Add Password Strength Validation
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one number
+- At least one special character
+
+### Step 5.2: Add Email Verification
+- Send verification email on signup
+- Store verification token in database
+- Create verification route
+- Prevent login until verified
+
+### Step 5.3: Add "Forgot Password" Flow
+- Create password reset request form
+- Generate reset token
+- Send reset email
+- Create reset password page
+- Validate token and update password
+
+### Step 5.4: Link URLs to Users
+- Modify shorten API to save userId
+- Display user's URLs in dashboard
+- Add delete/edit functionality
+
+---
+
+## Summary of Files to Create/Modify
+
+**New Files:**
+- `app/api/auth/signup/route.ts` - Signup API
+- `app/signup/page.tsx` - Signup UI
+- Install: bcryptjs
+
+**Files to Modify:**
+- `auth.ts` - Add Credentials provider
+- `app/login/page.tsx` - Add email/password form
+- `prisma/schema.prisma` - Add User model
+
+**Commands to Run:**
+```bash
+npm install bcryptjs
+npm install --save-dev @types/bcryptjs
+npx prisma migrate dev --name add_user_model
+npx prisma generate
+```
+
+---
+
+## Important Notes
+
+1. **Security**: Never store passwords in plain text - always use bcrypt
+2. **Validation**: Add proper email and password validation
+3. **Error Handling**: Implement proper error messages for better UX
+4. **Session Management**: Sessions are handled by NextAuth automatically
+5. **Database**: Make sure PostgreSQL is running before migrations
+
+---
+
+Good luck with the implementation! Start with Phase 1 and work your way through each phase sequentially.

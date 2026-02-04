@@ -7,14 +7,30 @@ export default function Login() {
   const [mode, setMode] = useState<"login" | "signup">("login");
 
 
-  const login = async()=>{
-    alert("User logged In") 
-    let res = await fetch("/api/auth/login",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
+  const login = async () => {
+    alert("User logged In")
+    let res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
-      body:JSON.stringify({email:"",password:""})
+      body: JSON.stringify({ email: "", password: "" })
+    })
+    let data = await res.json();
+    console.log(data);
+  }
+
+  const signup = async () => {
+    alert("User Signed Up")
+    let email = document.getElementById("email") as HTMLInputElement;
+    let password = document.getElementById("password") as HTMLInputElement;
+    let name = document.getElementById("name") as HTMLInputElement;
+    let res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email: email.value, password: password.value, name: name.value })
     })
     let data = await res.json();
     console.log(data);
@@ -72,6 +88,7 @@ export default function Login() {
               {mode === "signup" && (
                 <input
                   type="text"
+                  id="name"
                   placeholder="Full Name"
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -79,12 +96,14 @@ export default function Login() {
 
               <input
                 type="email"
+                id="email"
                 placeholder="Email address"
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
               <input
                 type="password"
+                id="password"
                 placeholder="Password"
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -92,18 +111,19 @@ export default function Login() {
               {mode === "signup" && (
                 <input
                   type="password"
+                  id="password2"
                   placeholder="Confirm password"
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               )}
 
-              <button onClick={login} className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
+              <button onClick={(mode === "login" ? login : signup)} className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
                 {mode === "login" ? "Login" : "Sign Up"}
               </button>
             </div>
 
             <LoginWithGoogle />
-        
+
             {/* Switch */}
             <div className="mt-6 text-sm text-center">
               {mode === "login" ? (

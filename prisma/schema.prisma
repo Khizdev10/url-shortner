@@ -7,10 +7,12 @@ datasource db {
 }
 
 model shortener {
-  id       Int    @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   longUrl  String
-  alias    String @unique
-  shortUrl String @unique
+  alias    String  @unique
+  shortUrl String  @unique
+  userId   String?
+  user     User?   @relation(fields: [userId], references: [id])
 }
 
 model User {
@@ -22,4 +24,5 @@ model User {
   emailVerified DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  shorteners    shortener[]
 }

@@ -12,3 +12,14 @@ model shortener {
   alias    String @unique
   shortUrl String @unique
 }
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?   // null for OAuth users
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}

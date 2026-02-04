@@ -9,12 +9,14 @@ export default function Login() {
 
   const login = async () => {
     alert("User logged In")
-    let res = await fetch("/api/auth/signup", {
+    let email = document.getElementById("email") as HTMLInputElement;
+    let password = document.getElementById("password") as HTMLInputElement;
+    let res = await fetch("/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ email: "", password: "" })
+      body: JSON.stringify({ email: email.value, password: password.value })
     })
     let data = await res.json();
     console.log(data);

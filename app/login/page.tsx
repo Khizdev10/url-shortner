@@ -8,7 +8,7 @@ export default function Login() {
 
 
   const login = async () => {
-    alert("User logged In")
+    // alert("User logged In")
     let btn = document.getElementById("submit") as HTMLButtonElement;
     btn.innerText = "Logging In...";
     btn.disabled = true;
@@ -21,27 +21,22 @@ export default function Login() {
     });
 
     if (result?.error) {
-      alert("Login failed!");
+      // alert("Login failed!");
+
+      let failed = document.getElementById("error") as HTMLParagraphElement;
+      failed.classList.remove("hidden");
+      failed.innerText = "failed to login. Try again";
+      btn.innerText = "Login";
+      btn.disabled = false;
     } else {
       alert("Login successful!");
       btn.innerText = "Login";
       btn.disabled = false;
       window.location.href = "/dashboard"; // Redirect manually
     }
-
-    // let res = await fetch("/api/auth/login", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json"
-    //   },
-    //   body: JSON.stringify({ email: email.value, password: password.value })
-    // })
-    // let data = await res.json();
-    // console.log(data);
   }
 
   const signup = async () => {
-    alert("User Signed Up")
     let btn = document.getElementById("submit") as HTMLButtonElement;
     btn.innerText = "Signing Up...";
     btn.disabled = true;
@@ -57,12 +52,17 @@ export default function Login() {
     })
     let data = await res.json();
     console.log(data);
-    btn.innerText = "Sign Up";
-    btn.disabled = false;
+    if (data.error) {
+      let failed = document.getElementById("error") as HTMLParagraphElement;
+      failed.classList.remove("hidden");
+      failed.innerText = "failed to signup. Try again";
+      btn.innerText = "Sign Up";
+      btn.disabled = false;
+    }
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden pt-10">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#312e81]" />
 
@@ -103,6 +103,8 @@ export default function Login() {
             <h2 className="text-2xl font-bold mb-1">
               {mode === "login" ? "Login" : "Create Account"}
             </h2>
+            <p className="text-red-500 p-2 rounded-md bg-red-100 text-center hidden" id="error"></p>
+
             <p className="text-sm opacity-60 mb-6">
               {mode === "login"
                 ? "Enter your credentials to continue"
@@ -155,7 +157,11 @@ export default function Login() {
                 <p>
                   Don’t have an account?{" "}
                   <button
-                    onClick={() => setMode("signup")}
+                    onClick={() => {
+                      setMode("signup")
+                      document.getElementById("error")?.classList.add("hidden");
+                    }
+                    }
                     className="text-blue-700 font-semibold hover:underline"
                   >
                     Sign up
@@ -165,7 +171,11 @@ export default function Login() {
                 <p>
                   Already have an account?{" "}
                   <button
-                    onClick={() => setMode("login")}
+                    onClick={() => {
+                      setMode("login")
+                      document.getElementById("error")?.classList.add("hidden");
+                    }
+                    }
                     className="text-blue-700 font-semibold hover:underline"
                   >
                     Login
@@ -174,7 +184,6 @@ export default function Login() {
               )}
             </div>
           </div>
-
         </div>
       </div>
     </div>

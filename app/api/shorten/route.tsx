@@ -2,12 +2,24 @@ export const runtime = "nodejs";
 
 import { prisma } from "../../../lib/prisma";
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 export async function POST(req: Request) {
   try {
     const { longUrl, alias } = await req.json();
     let abbreviation;
     console.log("Value of alias Q@@@@@@@ ", alias)
+
+    // Get the current user session
+    const session = await auth();
+    let userId = null;
+
+    if (session?.user?.email) {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email }
+      });
+      userId = user?.id || null;
+    }
 
     if (alias) {
       const aliasExists = await checkIfAliasExist(alias);
@@ -60,6 +72,7 @@ export async function POST(req: Request) {
         longUrl,
         alias: abbreviation,
         shortUrl: shortenedUrl,
+        userId: userId, // Link to user if logged in
       },
     });
 

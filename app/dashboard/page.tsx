@@ -1,43 +1,250 @@
 'use client'
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { Search, Link2, Trash2, Copy, ExternalLink, TrendingUp, BarChart3 } from "lucide-react"
+import Navbar from '../../components/Navbar'
+interface Link {
+    id: number
+    longUrl: string
+    alias: string
+    shortUrl: string
+}
 
 export default function Dashboard() {
     const { data: session, status } = useSession()
     const router = useRouter()
+    const [links, setLinks] = useState<Link[]>([])
+    const [loading, setLoading] = useState(true)
+    const [searchQuery, setSearchQuery] = useState("")
+    const [copiedId, setCopiedId] = useState<number | null>(null)
 
     useEffect(() => {
-        if (status === "loading") return // Wait for session to load
+        if (status === "loading") return
 
         if (status === "unauthenticated") {
             router.push("/login")
+            return
         }
+
+        fetchLinks()
     }, [status, router])
 
-    if (status === "loading") {
+    const fetchLinks = async () => {
+        try {
+            const res = await fetch("/api/links")
+            const data = await res.json()
+            if (data.links) {
+                setLinks(data.links)
+            }
+        } catch (error) {
+            console.error("Failed to fetch links:", error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const deleteLink = async (id: number) => {
+        if (!confirm("Are you sure you want to delete this link?")) return
+
+        try {
+            const res = await fetch("/api/links", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id })
+            })
+
+            if (res.ok) {
+                setLinks(links.filter(link => link.id !== id))
+            }
+        } catch (error) {
+            console.error("Failed to delete link:", error)
+        }
+    }
+
+    const copyToClipboard = (text: string, id: number) => {
+        navigator.clipboard.writeText(text)
+        setCopiedId(id)
+        setTimeout(() => setCopiedId(null), 2000)
+    }
+
+    const filteredLinks = links.filter(link =>
+        link.longUrl.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        link.alias.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+
+    if (status === "loading" || loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-black">
-                <div className="text-lg">Loading...</div>
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p className="text-gray-600">Loading your dashboard...</p>
+                </div>
             </div>
         )
     }
 
     if (status === "unauthenticated") {
-        return null // Will redirect
+        return null
     }
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-black">
-            <div className="container mx-auto px-4 py-8">
-                <h1 className="text-4xl font-bold mb-4">Dashboard</h1>
-                <p className="text-lg mb-8">Welcome, {session?.user?.name || "User"}!</p>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+            {/* Header */}
 
-                <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6">
-                    <h2 className="text-2xl font-semibold mb-4">Your Shortened URLs</h2>
-                    <p className="text-gray-600 dark:text-gray-400">
-                        Dashboard content will go here - showing your URL history, analytics, etc.
-                    </p>
+            <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+                <div className="container mx-auto px-4 py-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                Dashboard
+                            </h1>
+                            <p className="text-gray-600 mt-1">Welcome back, {session?.user?.name || "User"}!</p>
+                        </div>
+                        <button
+                            onClick={() => router.push("/")}
+                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
+                        >
+                            Create New Link
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="container mx-auto px-4 py-8">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-500 text-sm font-medium">Total Links</p>
+                                <p className="text-3xl font-bold text-gray-900 mt-2">{links.length}</p>
+                            </div>
+                            <div className="bg-blue-100 p-4 rounded-xl">
+                                <Link2 className="text-blue-600" size={28} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-500 text-sm font-medium">Active Links</p>
+                                <p className="text-3xl font-bold text-gray-900 mt-2">{links.length}</p>
+                            </div>
+                            <div className="bg-green-100 p-4 rounded-xl">
+                                <TrendingUp className="text-green-600" size={28} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-500 text-sm font-medium">Total Clicks</p>
+                                <p className="text-3xl font-bold text-gray-900 mt-2">0</p>
+                            </div>
+                            <div className="bg-purple-100 p-4 rounded-xl">
+                                <BarChart3 className="text-purple-600" size={28} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Links Section */}
+                <div className="bg-white rounded-2xl shadow-md border border-gray-100">
+                    {/* Search Bar */}
+                    <div className="p-6 border-b border-gray-100">
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <input
+                                type="text"
+                                placeholder="Search links..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Links List */}
+                    <div className="divide-y divide-gray-100">
+                        {filteredLinks.length === 0 ? (
+                            <div className="p-12 text-center">
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                                    <Link2 className="text-gray-400" size={32} />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                    {searchQuery ? "No links found" : "No links yet"}
+                                </h3>
+                                <p className="text-gray-500 mb-6">
+                                    {searchQuery ? "Try a different search term" : "Create your first shortened link to get started!"}
+                                </p>
+                                {!searchQuery && (
+                                    <button
+                                        onClick={() => router.push("/")}
+                                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
+                                    >
+                                        Create Link
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            filteredLinks.map((link) => (
+                                <div key={link.id} className="p-6 hover:bg-gray-50 transition-colors group">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            {/* Short URL */}
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <div className="bg-blue-100 p-2 rounded-lg">
+                                                    <Link2 className="text-blue-600" size={18} />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <a
+                                                        href={link.shortUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-600 hover:text-blue-700 font-semibold text-lg inline-flex items-center gap-2"
+                                                    >
+                                                        {link.shortUrl}
+                                                        <ExternalLink size={16} />
+                                                    </a>
+                                                    <p className="text-gray-500 text-sm mt-1">Alias: {link.alias}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Long URL */}
+                                            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                                                <p className="text-gray-600 text-sm font-medium mb-1">Original URL:</p>
+                                                <p className="text-gray-900 truncate">{link.longUrl}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => copyToClipboard(link.shortUrl, link.id)}
+                                                className="p-2.5 hover:bg-blue-100 rounded-lg transition-colors group/copy"
+                                                title="Copy link"
+                                            >
+                                                <Copy
+                                                    size={18}
+                                                    className={copiedId === link.id ? "text-green-600" : "text-gray-600 group-hover/copy:text-blue-600"}
+                                                />
+                                            </button>
+                                            <button
+                                                onClick={() => deleteLink(link.id)}
+                                                className="p-2.5 hover:bg-red-100 rounded-lg transition-colors group/delete"
+                                                title="Delete link"
+                                            >
+                                                <Trash2 size={18} className="text-gray-600 group-hover/delete:text-red-600" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

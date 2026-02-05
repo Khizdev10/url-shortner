@@ -9,7 +9,9 @@ export default function Login() {
 
   const login = async () => {
     alert("User logged In")
-
+    let btn = document.getElementById("submit") as HTMLButtonElement;
+    btn.innerText = "Logging In...";
+    btn.disabled = true;
     let email = document.getElementById("email") as HTMLInputElement;
     let password = document.getElementById("password") as HTMLInputElement;
     const result = await signIn("credentials", {
@@ -22,6 +24,8 @@ export default function Login() {
       alert("Login failed!");
     } else {
       alert("Login successful!");
+      btn.innerText = "Login";
+      btn.disabled = false;
       window.location.href = "/dashboard"; // Redirect manually
     }
 
@@ -38,6 +42,9 @@ export default function Login() {
 
   const signup = async () => {
     alert("User Signed Up")
+    let btn = document.getElementById("submit") as HTMLButtonElement;
+    btn.innerText = "Signing Up...";
+    btn.disabled = true;
     let email = document.getElementById("email") as HTMLInputElement;
     let password = document.getElementById("password") as HTMLInputElement;
     let name = document.getElementById("name") as HTMLInputElement;
@@ -50,6 +57,8 @@ export default function Login() {
     })
     let data = await res.json();
     console.log(data);
+    btn.innerText = "Sign Up";
+    btn.disabled = false;
   }
 
   return (
@@ -133,7 +142,7 @@ export default function Login() {
                 />
               )}
 
-              <button onClick={(mode === "login" ? login : signup)} className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
+              <button id='submit' onClick={(mode === "login" ? login : signup)} className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
                 {mode === "login" ? "Login" : "Sign Up"}
               </button>
             </div>

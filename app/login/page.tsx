@@ -1,5 +1,5 @@
 "use client";
-
+import { signIn } from "next-auth/react"
 import { useState } from "react";
 import LoginWithGoogle from "./loginWithGoogle";
 
@@ -9,17 +9,31 @@ export default function Login() {
 
   const login = async () => {
     alert("User logged In")
+
     let email = document.getElementById("email") as HTMLInputElement;
     let password = document.getElementById("password") as HTMLInputElement;
-    let res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email: email.value, password: password.value })
-    })
-    let data = await res.json();
-    console.log(data);
+    const result = await signIn("credentials", {
+      email: email.value,
+      password: password.value,
+      redirect: false, // Don't auto-redirect
+    });
+
+    if (result?.error) {
+      alert("Login failed!");
+    } else {
+      alert("Login successful!");
+      window.location.href = "/dashboard"; // Redirect manually
+    }
+
+    // let res = await fetch("/api/auth/login", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json"
+    //   },
+    //   body: JSON.stringify({ email: email.value, password: password.value })
+    // })
+    // let data = await res.json();
+    // console.log(data);
   }
 
   const signup = async () => {

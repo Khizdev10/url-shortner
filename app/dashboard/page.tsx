@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Search, Link2, Trash2, Copy, ExternalLink, TrendingUp, BarChart3, HomeIcon } from "lucide-react"
+import { Search, Link2, Trash2, Copy, ExternalLink, TrendingUp, BarChart3, HomeIcon, X } from "lucide-react"
 import Navbar from '../../components/Navbar'
 interface Link {
     id: number
@@ -11,13 +11,16 @@ interface Link {
     shortUrl: string
 }
 
-export default function Dashboard() {
+import { handleShorten, copy } from "../utils/route";
+import Shortenerform from '../../components/Shortenerform'
+export default function Dashboard(props: any) {
     const { data: session, status } = useSession()
     const router = useRouter()
     const [links, setLinks] = useState<Link[]>([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [copiedId, setCopiedId] = useState<number | null>(null)
+    const [showModal, setShowModal] = useState(false)
 
     useEffect(() => {
         if (status === "loading") return
@@ -91,9 +94,31 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+            {/* Modal Overlay */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    {/* Backdrop with blur */}
+                    <div
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        onClick={() => setShowModal(false)}
+                    />
+
+                    {/* Modal Content */}
+                    <div className="relative z-10 w-full max-w-md mx-4">
+                        {/* Close button */}
+                        <button
+                            onClick={() => setShowModal(false)}
+                            className="absolute -top-12 right-0 text-white hover:text-gray-300 transition"
+                        >
+                            <X size={32} />
+                        </button>
+
+                        <Shortenerform handleShorten={handleShorten} copy={copy} />
+                    </div>
+                </div>
+            )}
 
             {/* Header */}
-
             <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
                 <div className="container mx-auto px-4 py-6">
                     <div className="flex items-center justify-between">
@@ -106,7 +131,7 @@ export default function Dashboard() {
                         <div className="flex items-center gap-4">
                             <a href="/" className="mr-4 flex items-center gap-2"><HomeIcon size={24} />Home</a>
                             <button
-                                onClick={() => router.push("/")}
+                                onClick={() => setShowModal(true)}
                                 className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
                             >
                                 Create New Link

@@ -35,6 +35,7 @@ export default function Dashboard() {
             const res = await fetch("/api/links")
             const data = await res.json()
             if (data.links) {
+                console.log("LINKS INCOPMINGAAAAAAAAAAAAAAA", data.links)
                 setLinks(data.links)
             }
         } catch (error) {

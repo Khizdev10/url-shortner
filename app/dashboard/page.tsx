@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Search, Link2, Trash2, Copy, ExternalLink, TrendingUp, BarChart3 } from "lucide-react"
+import { Search, Link2, Trash2, Copy, ExternalLink, TrendingUp, BarChart3, HomeIcon } from "lucide-react"
 import Navbar from '../../components/Navbar'
 interface Link {
     id: number
@@ -91,6 +91,7 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+
             {/* Header */}
 
             <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
@@ -102,12 +103,15 @@ export default function Dashboard() {
                             </h1>
                             <p className="text-gray-600 mt-1">Welcome back, {session?.user?.name || "User"}!</p>
                         </div>
-                        <button
-                            onClick={() => router.push("/")}
-                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
-                        >
-                            Create New Link
-                        </button>
+                        <div className="flex items-center gap-4">
+                            <a href="/" className="mr-4 flex items-center gap-2"><HomeIcon size={24} />Home</a>
+                            <button
+                                onClick={() => router.push("/")}
+                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
+                            >
+                                Create New Link
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -11,7 +11,7 @@ interface Link {
     shortUrl: string
 }
 
-import { handleShorten, copy } from "../utils/route";
+import { handleShorten, copy } from "../utils/utils";
 import Shortenerform from '../../components/Shortenerform'
 export default function Dashboard(props: any) {
     const { data: session, status } = useSession()

@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar'
 import Mainpage from '../components/Mainpage'
 import Info from '../components/Info'
 import { HowItWorks } from '../components/Working'
-import { handleShorten, copy } from './utils/route'
+import { handleShorten, copy } from './utils/utils'
 
 export default function Website(session: any) {
 

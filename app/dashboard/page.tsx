@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Search, Link2, Trash2, Copy, ExternalLink, TrendingUp, BarChart3, HomeIcon, X } from "lucide-react"
+import { Search, Link2, Trash2, Copy, ExternalLink, TrendingUp, BarChart3, HomeIcon, X, ChartSpline } from "lucide-react"
 import Navbar from '../../components/Navbar'
 interface Link {
     id: number
@@ -261,6 +261,20 @@ export default function Dashboard(props: any) {
                                                     size={18}
                                                     className={copiedId === link.id ? "text-green-600" : "text-gray-600 group-hover/copy:text-blue-600"}
                                                 />
+
+
+                                            </button>
+                                            <button
+                                                onClick={() => copyToClipboard(link.shortUrl, link.id)}
+                                                className="p-2.5 hover:bg-blue-100 rounded-lg transition-colors group/copy"
+                                                title="Copy link"
+                                            >
+                                                <ChartSpline
+                                                    size={18}
+                                                    className={copiedId === link.id ? "text-green-600" : "text-gray-600 group-hover/copy:text-blue-600"}
+                                                />
+
+
                                             </button>
                                             <button
                                                 onClick={() => deleteLink(link.id)}

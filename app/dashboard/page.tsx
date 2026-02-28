@@ -2,17 +2,19 @@
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Search, Link2, Trash2, Copy, ExternalLink, TrendingUp, BarChart3, HomeIcon, X, ChartSpline } from "lucide-react"
+import { Search, Link2, Trash2, Copy, ExternalLink, TrendingUp, BarChart3, HomeIcon, X, ChartSpline, MousePointerClick, ChevronLeft, ChevronRight } from "lucide-react"
 import Navbar from '../../components/Navbar'
 interface Link {
     id: number
     longUrl: string
     alias: string
     shortUrl: string
+    _count: { clicks: number }
 }
 
 import { handleShorten, copy } from "../utils/utils";
 import Shortenerform from '../../components/Shortenerform'
+import { navigate } from "next/dist/client/components/segment-cache/navigation"
 export default function Dashboard(props: any) {
     const { data: session, status } = useSession()
     const router = useRouter()
@@ -21,6 +23,8 @@ export default function Dashboard(props: any) {
     const [searchQuery, setSearchQuery] = useState("")
     const [copiedId, setCopiedId] = useState<number | null>(null)
     const [showModal, setShowModal] = useState(false)
+    const [currentPage, setCurrentPage] = useState(1)
+    const ITEMS_PER_PAGE = 5
 
     useEffect(() => {
         if (status === "loading") return
@@ -32,6 +36,8 @@ export default function Dashboard(props: any) {
 
         fetchLinks()
     }, [status, router])
+
+
 
     const fetchLinks = async () => {
         try {
@@ -75,6 +81,12 @@ export default function Dashboard(props: any) {
     const filteredLinks = links.filter(link =>
         link.longUrl.toLowerCase().includes(searchQuery.toLowerCase()) ||
         link.alias.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+
+    const totalPages = Math.max(1, Math.ceil(filteredLinks.length / ITEMS_PER_PAGE))
+    const paginatedLinks = filteredLinks.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
     )
 
     if (status === "loading" || loading) {
@@ -172,7 +184,7 @@ export default function Dashboard(props: any) {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-500 text-sm font-medium">Total Clicks</p>
-                                <p className="text-3xl font-bold text-gray-900 mt-2">0</p>
+                                <p className="text-3xl font-bold text-gray-900 mt-2">{links.reduce((sum, l) => sum + (l._count?.clicks ?? 0), 0)}</p>
                             </div>
                             <div className="bg-purple-100 p-4 rounded-xl">
                                 <BarChart3 className="text-purple-600" size={28} />
@@ -191,7 +203,7 @@ export default function Dashboard(props: any) {
                                 type="text"
                                 placeholder="Search links..."
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
                                 className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
@@ -220,7 +232,7 @@ export default function Dashboard(props: any) {
                                 )}
                             </div>
                         ) : (
-                            filteredLinks.map((link) => (
+                            paginatedLinks.map((link) => (
                                 <div key={link.id} className="p-6 hover:bg-gray-50 transition-colors group">
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1 min-w-0">
@@ -231,7 +243,7 @@ export default function Dashboard(props: any) {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <a
-                                                        href={link.shortUrl}
+                                                        href={`/${link.alias}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="text-blue-600 hover:text-blue-700 font-semibold text-lg inline-flex items-center gap-2"
@@ -240,6 +252,10 @@ export default function Dashboard(props: any) {
                                                         <ExternalLink size={16} />
                                                     </a>
                                                     <p className="text-gray-500 text-sm mt-1">Alias: {link.alias}</p>
+                                                    <span className="inline-flex items-center gap-1 mt-1 text-xs font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                                                        <MousePointerClick size={11} />
+                                                        {link._count?.clicks ?? 0} {(link._count?.clicks ?? 0) === 1 ? 'click' : 'clicks'}
+                                                    </span>
                                                 </div>
                                             </div>
 
@@ -265,16 +281,14 @@ export default function Dashboard(props: any) {
 
                                             </button>
                                             <button
-                                                onClick={() => copyToClipboard(link.shortUrl, link.id)}
-                                                className="p-2.5 hover:bg-blue-100 rounded-lg transition-colors group/copy"
-                                                title="Copy link"
+                                                onClick={() => router.push(`/dashboard/stats/${link.id}`)}
+                                                className="p-2.5 hover:bg-purple-100 rounded-lg transition-colors group/chart"
+                                                title="View stats"
                                             >
                                                 <ChartSpline
                                                     size={18}
-                                                    className={copiedId === link.id ? "text-green-600" : "text-gray-600 group-hover/copy:text-blue-600"}
+                                                    className="text-gray-600 group-hover/chart:text-purple-600"
                                                 />
-
-
                                             </button>
                                             <button
                                                 onClick={() => deleteLink(link.id)}
@@ -289,6 +303,47 @@ export default function Dashboard(props: any) {
                             ))
                         )}
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+                            <p className="text-sm text-gray-500">
+                                Showing <span className="font-semibold text-gray-700">{(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredLinks.length)}</span> of <span className="font-semibold text-gray-700">{filteredLinks.length}</span> links
+                            </p>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    title="Previous page"
+                                >
+                                    <ChevronLeft size={18} className="text-gray-600" />
+                                </button>
+
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                    <button
+                                        key={page}
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors ${page === currentPage
+                                            ? 'bg-blue-600 text-white shadow-sm'
+                                            : 'text-gray-600 hover:bg-gray-100'
+                                            }`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    title="Next page"
+                                >
+                                    <ChevronRight size={18} className="text-gray-600" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -13,6 +14,18 @@ model shortener {
   shortUrl String  @unique
   userId   String?
   user     User?   @relation(fields: [userId], references: [id])
+  clicks   Click[]
+}
+
+model Click {
+  id          Int       @id @default(autoincrement())
+  shortenerId Int
+  shortener   shortener @relation(fields: [shortenerId], references: [id], onDelete: Cascade)
+  ip          String?
+  userAgent   String?
+  referer     String?
+  country     String?
+  clickedAt   DateTime  @default(now())
 }
 
 model User {

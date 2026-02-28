@@ -15,7 +15,10 @@ export async function GET() {
             where: { email: session.user.email },
             include: {
                 shorteners: {
-                    orderBy: { id: 'desc' }
+                    orderBy: { id: 'desc' },
+                    include: {
+                        _count: { select: { clicks: true } }
+                    }
                 }
             }
         });

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "Shortify - URL Shortener",
   description: "Shorten your long URLs instantly. Create custom short links for easy sharing and tracking.",
   icons: {
-    icon: '/favicon.ico',
+    icon: '/icon.png',
     // favicon change krne lge the tum 
   },
 };

@@ -105,32 +105,16 @@ const Navbar = () => {
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuTrigger className={navItemClasses}>Services</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4">
-                    <ListItem href="/services" title="Road Transport">
-                      Domestic and regional trucking fleet.
-                    </ListItem>
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className={navItemClasses}>About Us</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4">
-                    <ListItem href="/about" title="Our Story">
-                      Read about us.
-                    </ListItem>
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link href="/contact" className={navItemClasses}>Contact</Link>
+                  <Link href="/dashboard" className={navItemClasses}>
+                    Logout
+                  </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
+
+
+
+
             </NavigationMenuList>
           </NavigationMenu>
         </div>
@@ -163,26 +147,11 @@ const Navbar = () => {
               Dashboard
             </Link>
 
-            <div className="flex flex-col space-y-2">
-              <span className="text-lg font-medium text-slate-900 opacity-80">Services</span>
-              <div className="flex flex-col pl-4 space-y-2 border-l-2 border-slate-100">
-                <Link href="/services" className="text-slate-600 hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
-                  Road Transport
-                </Link>
-              </div>
-            </div>
 
-            <div className="flex flex-col space-y-2">
-              <span className="text-lg font-medium text-slate-900 opacity-80">About Us</span>
-              <div className="flex flex-col pl-4 space-y-2 border-l-2 border-slate-100">
-                <Link href="/about" className="text-slate-600 hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
-                  Our Story
-                </Link>
-              </div>
-            </div>
 
-            <Link href="/contact" className="text-lg font-medium text-slate-900 hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
-              Contact
+
+            <Link href="" className="text-lg font-medium text-slate-900 hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
+              Logout
             </Link>
           </nav>
         </div>

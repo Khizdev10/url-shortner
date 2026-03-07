@@ -4,6 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Search, Menu, X } from "lucide-react"
+import { signOut } from "next-auth/react"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -105,11 +106,12 @@ const Navbar = () => {
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuLink asChild>
-                  <Link href="/dashboard" className={navItemClasses}>
-                    Logout
-                  </Link>
-                </NavigationMenuLink>
+                <button
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className={navItemClasses}
+                >
+                  Logout
+                </button>
               </NavigationMenuItem>
 
 
@@ -150,9 +152,12 @@ const Navbar = () => {
 
 
 
-            <Link href="" className="text-lg font-medium text-slate-900 hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
+            <button
+              onClick={() => { setIsMobileMenuOpen(false); signOut({ callbackUrl: "/" }); }}
+              className="text-lg font-medium text-slate-900 hover:text-blue-600 text-left"
+            >
               Logout
-            </Link>
+            </button>
           </nav>
         </div>
       )}
